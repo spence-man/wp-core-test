@@ -11,7 +11,7 @@ lock '3.9'
 ############################################
 
 set :application, "chappress"
-set :repo_url, "git@github.com:chapmanu/chap-press.git"
+set :repo_url, "git@github.com:spence-man/wp-core-test.git"
 
 ############################################
 # Setup Capistrano

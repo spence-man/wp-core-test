@@ -8,10 +8,6 @@
  * @subpackage Trackbacks
  */
 
-/******************** Chap-Press Custom Log *************************/
-wpLog("wp-trackback.php");
-/********************************************************************/
-
 if (empty($wp)) {
 	require_once( dirname( __FILE__ ) . '/wp-load.php' );
 	wp( array( 'tb' => '1' ) );
