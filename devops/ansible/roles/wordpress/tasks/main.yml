@@ -1,0 +1,66 @@
+---
+- name: download wp-cli
+  get_url: url=https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar dest=/usr/local/bin/wp
+
+- name: update permissions of wp-cli to allow anyone to execute it
+  file: path=/usr/local/bin/wp mode=0755
+
+- name : Create Ansible variable for group results
+  command: cat /etc/group
+  register: group_result
+
+# Creates webadmin group if group doesn't exist
+- name: Create new webadmin group
+  command: groupadd webadmin
+  when: '"webadmin" not in group_result.stdout'
+
+# Adds wimops to webadmin if group doesn't exist
+- name: Create new group with wimops
+  command: usermod -a -G webadmin wimops
+  when: '"webadmin" not in group_result.stdout'
+
+- name: Create www directory
+  file: state=directory path="/var/www" 
+
+- name: Create html directory
+  file: state=directory path="/var/www/html"
+
+# Linux command: chown -v root:webadmin /usr/share/nginx/html
+- name: Set group permissions for webadmin at server root
+  file: path=/var/www/html owner=root group=webadmin
+
+# Linux command: chmod 2775 /usr/share/nginx/html -Rv
+- name: Set file permissions at server root
+  file: path=/var/www/html recurse=yes mode=2775
+
+#### Check if Capistrano is already deployed to the following directories ####
+# - name: Check for WordPress Public folder     
+#   stat: path=/var/www/html/current/
+#   register: wp_current_dir
+
+- name: Check for WordPress Public folder     
+  stat: path=/var/www/html/current/public
+  register: wp_public_dir
+
+###### Create directories if Capistrano is not deployed #################################
+
+# - name: Create current directory
+#   file: state=directory path="/var/www/current" 
+#   when: not wp_current_dir.stat.exists
+
+# - name: Create public directory
+#   file: state=directory path="/var/www/html/current/public"
+#   when: not wp_public_dir.stat.exists
+
+####### Install WordPress #################
+
+- name: Use WP Cli to install WordPress with admin & password
+  command: wp core install --url=http://localhost:5555 --title=chap-press --admin_user=chappress --admin_password=password --admin_email=chappress@gmail.com
+  when: wp_public_dir.stat.exists
+  tags:
+         - wordpress_admin_install
+
+######################################################################
+
+- name: restart nginx
+  service: name=nginx state=restarted enabled=yes

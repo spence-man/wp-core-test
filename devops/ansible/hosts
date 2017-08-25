@@ -1,0 +1,5 @@
+[staging]
+localhost:2222
+
+[staging:vars]
+ansible_ssh_user=wimops
